@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import { toast, ToastContainer } from 'react-toastify';
@@ -159,6 +157,10 @@ const D3Tree = ({ initialData }) => {
     }
   };
 
+  const handleSaveChanges = () => {
+    saveTree();
+  };
+
   return (
     <div style={{ margin: '20px', display: 'flex', alignItems: 'flex-start' }}>
       <div style={{ flex: '1 1 0', position: 'relative' }}>
@@ -178,6 +180,9 @@ const D3Tree = ({ initialData }) => {
             <button style={{ backgroundColor: 'red', color: 'white', fontWeight: 'bold', marginTop: '5px' }} onClick={deleteNode}>Delete Node</button>
           </div>
         )}
+      </div>
+      <div style={{ flex: '0 0 auto', marginLeft: '20px' }}>
+        <button style={{ backgroundColor: '#007bff', color: 'white', fontWeight: 'bold', padding: '10px 20px', borderRadius: '5px', border: 'none', cursor: 'pointer' }} onClick={handleSaveChanges}>Save Changes</button>
       </div>
       <ToastContainer />
     </div>
