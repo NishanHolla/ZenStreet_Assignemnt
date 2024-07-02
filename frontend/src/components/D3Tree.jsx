@@ -6,41 +6,68 @@ import 'react-toastify/dist/ReactToastify.css';
 const D3Tree = ({ initialData }) => {
   const svgRef = useRef();
   const [data, setData] = useState(initialData);
-  const [selectedNode, setSelectedNode] = useState(null); // Track selected node for context menu
+  const [selectedNode, setSelectedNode] = useState(null);
 
-  const width = Infinity;
-  const height = 2000;
+  const width = 1000;
+  const height = 800;
 
-  const margin = { top: 20, right: 20, bottom: 20, left: 20 }; // Margin values
+  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
-  
+
     const root = d3.hierarchy(data);
     const maxDepth = root.height + 1;
-    const treeHeight = maxDepth * 100; // Adjust this value to change vertical spacing
-    const treeWidth = 800; // Adjust this value for the initial width
-  
+    const treeHeight = maxDepth * 100;
+    const treeWidth = 800;
+
     const treeLayout = d3.tree().size([treeHeight, treeWidth]);
-  
     treeLayout(root);
-  
-    const nodes = svg.selectAll('g.node')
-      .data(root.descendants(), d => d.data.name) // Use node name for data binding
+
+    const linkData = root.links();
+    const nodeData = root.descendants();
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on('zoom', (event) => {
+        svgGroup.attr('transform', event.transform);
+      });
+
+    svg.call(zoom);
+
+    const svgGroup = svg.append('g');
+
+    const simulation = d3.forceSimulation(nodeData)
+      .force('link', d3.forceLink(linkData).distance(100))
+      .force('charge', d3.forceManyBody().strength(-300))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .on('tick', ticked);
+
+    const links = svgGroup.append('g')
+      .attr('class', 'links')
+      .selectAll('line')
+      .data(linkData)
+      .enter().append('line')
+      .attr('stroke', '#555')
+      .attr('stroke-width', 2);
+
+    const nodes = svgGroup.append('g')
+      .attr('class', 'nodes')
+      .selectAll('g')
+      .data(nodeData)
       .enter().append('g')
       .attr('class', 'node')
-      .attr('transform', d => `translate(${d.y},${d.x})`)
       .on('mouseover', handleMouseOver)
       .on('mouseout', handleMouseOut)
-      .on('click', handleNodeClick); // Add click handler to nodes
-  
+      .on('click', handleNodeClick);
+
     nodes.append('circle')
       .attr('r', 30)
       .style('fill', 'lightblue')
       .style('stroke', 'blue')
       .style('stroke-width', 2);
-  
+
     nodes.append('text')
       .attr('dy', '.31em')
       .attr('x', 0)
@@ -48,33 +75,38 @@ const D3Tree = ({ initialData }) => {
       .text(d => d.data.name)
       .style('fill', 'black')
       .style('pointer-events', 'none');
-  
-    const links = svg.selectAll('path.link')
-      .data(root.links())
-      .enter().append('path')
-      .attr('class', 'link')
-      .attr('d', d3.linkHorizontal()
-        .x(d => d.y)
-        .y(d => d.x))
-      .attr('fill', 'none')
-      .attr('stroke', '#555');
-  
+
+    function ticked() {
+      links
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+
+      nodes
+        .attr('transform', d => `translate(${d.x},${d.y})`);
+    }
+
     function handleMouseOver(event, d) {
       d3.select(this).select('circle')
         .transition()
         .duration(300)
-        .attr('r', 35); // Increase circle radius on hover
+        .attr('r', 35);
     }
-  
+
     function handleMouseOut(event, d) {
       d3.select(this).select('circle')
         .transition()
         .duration(300)
-        .attr('r', 30); // Restore circle radius on mouseout
+        .attr('r', 30);
     }
-  
+
     function handleNodeClick(event, d) {
-      setSelectedNode(d); // Set the selected node
+      setSelectedNode({
+        data: d.data,
+        x: event.pageY - margin.top,
+        y: event.pageX - margin.left,
+      });
     }
   }, [data]);
 
@@ -104,15 +136,14 @@ const D3Tree = ({ initialData }) => {
         const deletedNode = parentNode.children[index];
         parentNode.children.splice(index, 1);
         setData(updatedData);
-        setSelectedNode(null); // Clear selected node after deletion
+        setSelectedNode(null);
         toast.warn(`Deleted Node: ${deletedNode.name}`);
       }
     }
   };
 
-  // Helper function to find a node by its name
   const findNodeByName = (node, name) => {
-    if (node.data.name === name) {
+    if (node.name === name) {
       return node;
     } else if (node.children) {
       let result = null;
@@ -125,7 +156,6 @@ const D3Tree = ({ initialData }) => {
     return null;
   };
 
-  // Helper function to find parent node by child name
   const findParentNodeByName = (node, childName) => {
     if (node.children) {
       for (let child of node.children) {
@@ -168,6 +198,7 @@ const D3Tree = ({ initialData }) => {
           ref={svgRef}
           width={width + margin.left + margin.right}
           height={height + margin.top + margin.bottom}
+          style={{ border: '1px solid black' }}
         >
           <g transform={`translate(${margin.left},${margin.top})`}></g>
         </svg>
