@@ -1,37 +1,25 @@
 import fs from 'fs';
 import path from 'path';
-import fetch from 'node-fetch';
 
-const NESTJS_BASE_URL = 'http://localhost:3001'; // Replace with your NestJS server URL
+const DATA_FILE_PATH = path.join(process.cwd(), 'public', 'tree-data.json'); // Path to the tree-data.json file in the public directory
 
 export async function GET(request) {
   try {
-    const nestResponse = await fetch(`${NESTJS_BASE_URL}/tree-data`);
-    if (!nestResponse.ok) {
-      throw new Error('Failed to fetch tree data from NestJS');
-    }
-    const jsonData = await nestResponse.json();
-    return new Response(JSON.stringify(jsonData), {
+    const jsonData = fs.readFileSync(DATA_FILE_PATH, 'utf-8');
+    return new Response(jsonData, {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    return new Response(error.message, { status: 500 });
+    return new Response(`Failed to read tree data: ${error.message}`, { status: 500 });
   }
 }
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const nestResponse = await fetch(`${NESTJS_BASE_URL}/tree-data`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!nestResponse.ok) {
-      throw new Error('Failed to save tree data to NestJS');
-    }
+    fs.writeFileSync(DATA_FILE_PATH, JSON.stringify(body, null, 2), 'utf-8');
     return new Response('Tree saved successfully!', { status: 200 });
   } catch (error) {
-    return new Response(error.message, { status: 500 });
+    return new Response(`Failed to save tree data: ${error.message}`, { status: 500 });
   }
 }
