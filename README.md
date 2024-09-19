@@ -43,7 +43,11 @@ This project is a tree data visualization application built using Vite.js. It al
 
 **Screenshots**
 
+![Screenshot 2024-09-19 160301](https://github.com/user-attachments/assets/fcbbc53a-8897-4492-95db-eafdd4d14a45)
 
+![Screenshot 2024-09-19 160344](https://github.com/user-attachments/assets/c8a136c9-d801-436f-9d14-d6176b4f3c4f)
+
+![Screenshot 2024-09-19 160316](https://github.com/user-attachments/assets/bcb66356-31a0-49ff-a7bd-828d07ff9ea7)
 
 **Customization**
 
