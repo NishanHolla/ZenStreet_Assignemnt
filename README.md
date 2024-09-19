@@ -41,6 +41,10 @@ This project is a tree data visualization application built using Vite.js. It al
 * **Delete a node:** Click on the "delete" button associated with a node to remove it.
 * **Save changes:** Click the "Save" button to persist your changes.
 
+**Screenshots**
+
+
+
 **Customization**
 
 You can customize the appearance and behavior of the tree visualization by modifying the CSS styles and JavaScript code. Feel free to experiment with different layouts, colors, and interactions.
